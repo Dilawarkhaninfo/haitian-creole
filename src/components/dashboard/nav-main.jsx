@@ -1,46 +1,54 @@
+import React from "react";
+import { useLocation, Link } from "react-router-dom";
 import {
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useNavigate } from "react-router-dom";
-import { useSidebar } from "@/components/ui/sidebar";
 
 export function NavMain({ items, onChatNameUpdate }) {
-    const navigate = useNavigate();
-    const { isMobile, setOpen: setSidebarOpen, open: sidebarOpen } = useSidebar();
+  const location = useLocation();
 
-    const handleLinkClick = (e, item) => {
-        e.preventDefault(); // Prevent default navigation
-        const name = prompt("Please enter the name of the chat:");
-        if (name) {
-            onChatNameUpdate(name); // Send the chat name to DashboardLayout
-            console.log(`Navigating to ${item.url} with chat name: ${name}`);
-            navigate(item.url); // Navigate to the route
+  // Check if a path is active
+  const isActive = (url) => {
+    // Handle exact match for root chat path
+    if (url === "/chat" && location.pathname === "/chat") {
+      return true;
+    }
+    
+    // Handle child routes
+    if (url !== "/chat" && location.pathname.startsWith(url)) {
+      return true;
+    }
+    
+    return false;
+  };
 
-            // Debug the sidebar state
-            console.log("isMobile:", isMobile, "sidebarOpen:", sidebarOpen);
+  // Set the chat name when a navigation item is clicked
+  const handleNavClick = (item) => {
+    if (onChatNameUpdate) {
+      onChatNameUpdate(item.title);
+    }
+  };
 
-            // Close sidebar if on mobile, regardless of current open state
-            if (isMobile) {
-                setSidebarOpen(false);
-                console.log("Sidebar should now close");
-            }
-        }
-    };
-
-    return (
-        <SidebarMenu>
-            {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={item.isActive}>
-                        <a href={item.url} onClick={(e) => handleLinkClick(e, item)}>
-                            <item.icon />
-                            <span>{item.title}</span>
-                        </a>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-            ))}
-        </SidebarMenu>
-    );
+  return (
+    <SidebarMenu>
+      {items.map((item) => (
+        <SidebarMenuItem key={item.url}>
+          <SidebarMenuButton
+            asChild
+            isActive={isActive(item.url)}
+          >
+            <Link 
+              to={item.url} 
+              onClick={() => handleNavClick(item)}
+            >
+              {item.icon && <item.icon />}
+              <span>{item.title}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      ))}
+    </SidebarMenu>
+  );
 }
